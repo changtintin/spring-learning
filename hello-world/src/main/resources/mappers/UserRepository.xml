@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hello_world.repository.UserRepository">
+    <insert id="insert" parameterType="hello_world.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (
+            username,
+            email,
+            display_name,
+            avatar_url,
+            weight_kg,
+            weight_unit,
+            height_cm,
+            height_unit,
+            birth_date,
+            activity_level,
+            timezone
+        )
+        VALUES (
+            #{username},
+            #{email},
+            #{displayName},
+            #{avatarUrl},
+            #{weightKg},
+            COALESCE(#{weightUnit}, 'kg'),
+            #{heightCm},
+            COALESCE(#{heightUnit}, 'cm'),
+            #{birthDate},
+            #{activityLevel},
+            COALESCE(#{timezone}, 'Asia/Taipei')
+        )
+    </insert>
+
+    <select id="findAll" resultType="hello_world.entity.User">
+        SELECT id,
+               username,
+               email,
+               display_name,
+               avatar_url,
+               weight_kg,
+               weight_unit,
+               height_cm,
+               height_unit,
+               birth_date,
+               activity_level,
+               timezone,
+               created_at,
+               updated_at,
+               is_deleted
+        FROM users
+        WHERE is_deleted = false
+    </select>
+
+    <select id="selectById" parameterType="long" resultType="hello_world.entity.User">
+        SELECT id,
+               username,
+               email,
+               display_name,
+               avatar_url,
+               weight_kg,
+               weight_unit,
+               height_cm,
+               height_unit,
+               birth_date,
+               activity_level,
+               timezone,
+               created_at,
+               updated_at,
+               is_deleted
+        FROM users
+        WHERE id = #{id}
+          AND is_deleted = false
+    </select>
+
+    <update id="deleteById" parameterType="long">
+        UPDATE users
+        SET is_deleted = true
+        WHERE id = #{id}
+    </update>
+</mapper>
