@@ -1,9 +1,9 @@
-package hello_world.repository;
+package water_matters.repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import hello_world.entity.User;
+import water_matters.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

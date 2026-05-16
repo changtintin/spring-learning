@@ -1,4 +1,4 @@
-package hello_world.entity;
+package water_matters.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

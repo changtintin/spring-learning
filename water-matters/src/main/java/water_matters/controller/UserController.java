@@ -1,4 +1,4 @@
-package hello_world.controller;
+package water_matters.controller;
 
 import java.util.List;
 
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import hello_world.entity.User;
-import hello_world.repository.UserRepository;
+import water_matters.entity.User;
+import water_matters.repository.UserRepository;
 
 @RestController
 @RequestMapping("/users")

@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS beverages (
 	category VARCHAR(50),
 	is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (id),
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS user_favorite_beverages (
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS user_favorite_beverages (
 	UNIQUE KEY uk_user_beverage (user_id, beverage_id)
 );
 
-CREATE TABLE intake_records (
+CREATE TABLE IF NOT EXISTS intake_records (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	user_id BIGINT NOT NULL,
 	beverage_id BIGINT NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE intake_records (
 	KEY idx_user_intake_time (user_id, intake_time)
 );
 
-CREATE TABLE intake_reminders (
+CREATE TABLE IF NOT EXISTS intake_reminders (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	user_id BIGINT NOT NULL,
 	reminder_time TIME NOT NULL,
