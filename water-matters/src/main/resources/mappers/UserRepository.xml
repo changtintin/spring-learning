@@ -5,77 +5,53 @@
 <mapper namespace="water_matters.repository.UserRepository">
     <insert id="insert" parameterType="water_matters.entity.User" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO users (
-            username,
             email,
-            display_name,
-            avatar_url,
-            weight_kg,
-            weight_unit,
-            height_cm,
-            height_unit,
-            birth_date,
-            activity_level,
-            timezone
+            timezone,
+            preferred_volume_unit,
+            created_at,
+            updated_at,
+            deleted_at
         )
         VALUES (
-            #{username},
             #{email},
-            #{displayName},
-            #{avatarUrl},
-            #{weightKg},
-            COALESCE(#{weightUnit}, 'kg'),
-            #{heightCm},
-            COALESCE(#{heightUnit}, 'cm'),
-            #{birthDate},
-            #{activityLevel},
-            COALESCE(#{timezone}, 'Asia/Taipei')
+            COALESCE(#{timezone}, 'Asia/Taipei'),
+            COALESCE(#{preferredVolumeUnit}, 'ml'),
+            COALESCE(#{createdAt}, NOW()),
+            COALESCE(#{updatedAt}, NOW()),
+            #{deletedAt}
         )
     </insert>
 
     <select id="findAll" resultType="water_matters.entity.User">
         SELECT id,
-               username,
                email,
-               display_name,
-               avatar_url,
-               weight_kg,
-               weight_unit,
-               height_cm,
-               height_unit,
-               birth_date,
-               activity_level,
                timezone,
+               preferred_volume_unit,
                created_at,
                updated_at,
-               is_deleted
+               deleted_at
         FROM users
-        WHERE is_deleted = false
+        WHERE deleted_at IS NULL
     </select>
 
     <select id="selectById" parameterType="long" resultType="water_matters.entity.User">
         SELECT id,
-               username,
                email,
-               display_name,
-               avatar_url,
-               weight_kg,
-               weight_unit,
-               height_cm,
-               height_unit,
-               birth_date,
-               activity_level,
                timezone,
+               preferred_volume_unit,
                created_at,
                updated_at,
-               is_deleted
+               deleted_at
         FROM users
         WHERE id = #{id}
-          AND is_deleted = false
+          AND deleted_at IS NULL
     </select>
 
     <update id="deleteById" parameterType="long">
         UPDATE users
-        SET is_deleted = true
+        SET deleted_at = NOW(),
+            updated_at = NOW()
         WHERE id = #{id}
+          AND deleted_at IS NULL
     </update>
 </mapper>
