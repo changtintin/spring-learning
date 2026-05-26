@@ -1,55 +1,49 @@
 package water_matters.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import water_matters.dto.UserDTO;
+import water_matters.dto.request.CreateUserRequest;
+import water_matters.dto.response.UserDTO;
 import water_matters.entity.User;
+import water_matters.exception.UserNotFoundException;
+import water_matters.mapper.UserMapper;
 import water_matters.repository.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
-    public UserDTO createUser(User user) {
+    public UserDTO createUser(CreateUserRequest request) {
+        User user = userMapper.toEntity(request);
         User createdUser = userRepository.save(user);
-        return toDto(createdUser);
+        return userMapper.toDto(createdUser);
     }
 
     @Override
     public List<UserDTO> getUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return userMapper.toDtoList(userRepository.findAll());
     }
 
     @Override
     public UserDTO getUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return toDto(user);
+                .orElseThrow(() -> new UserNotFoundException(id));
+        return userMapper.toDto(user);
     }
 
     @Override
     public void deleteUser(Long id) {
+        userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
         userRepository.deleteById(id);
-    }
-
-    private UserDTO toDto(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setTimezone(user.getTimezone());
-        dto.setPreferredVolumeUnit(user.getPreferredVolumeUnit());
-        dto.setDeletedAt(user.getDeletedAt());
-        return dto;
     }
 }

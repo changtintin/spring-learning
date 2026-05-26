@@ -2,11 +2,11 @@ package water_matters.service;
 
 import java.util.List;
 
-import water_matters.dto.UserDTO;
-import water_matters.entity.User;
+import water_matters.dto.request.CreateUserRequest;
+import water_matters.dto.response.UserDTO;
 
 public interface UserService {
-    UserDTO createUser(User user);
+    UserDTO createUser(CreateUserRequest request);
 
     List<UserDTO> getUsers();
 

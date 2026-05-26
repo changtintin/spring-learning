@@ -1,6 +1,4 @@
-package water_matters.dto;
-
-import java.time.LocalDateTime;
+package water_matters.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,9 +9,6 @@ public class UserDTO {
 
     @JsonProperty("preferred_volume_unit")
     private String preferredVolumeUnit;
-
-    @JsonProperty("deleted_at")
-    private LocalDateTime deletedAt;
 
     public Long getId() {
         return id;
@@ -45,13 +40,5 @@ public class UserDTO {
 
     public void setPreferredVolumeUnit(String preferredVolumeUnit) {
         this.preferredVolumeUnit = preferredVolumeUnit;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
     }
 }
