@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS payment_transactions;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS carts;
+DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS subscription_plans;
+DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS intake_reminder_times;
 DROP TABLE IF EXISTS intake_records;
 DROP TABLE IF EXISTS user_favorite_beverages;
@@ -166,4 +172,115 @@ CREATE TABLE intake_reminder_times (
         FOREIGN KEY (reminder_id) REFERENCES intake_reminders(id),
     CONSTRAINT chk_intake_reminder_times_weekday
         CHECK (weekday IS NULL OR weekday BETWEEN 0 AND 6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE products (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    code VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    product_type ENUM('SUBSCRIPTION', 'DIGITAL_ASSET', 'FEATURE') NOT NULL,
+    description VARCHAR(500),
+    price_amount DECIMAL(10,2) NOT NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'TWD',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_products_code (code),
+    CONSTRAINT chk_products_price_amount
+        CHECK (price_amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE subscription_plans (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    product_id BIGINT NOT NULL,
+    plan_type ENUM('TRIAL', 'PAID') NOT NULL,
+    billing_cycle ENUM('NONE', 'MONTHLY', 'YEARLY') NOT NULL DEFAULT 'NONE',
+    duration_days INT NOT NULL,
+    is_auto_renew BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_subscription_plans_product_id (product_id),
+    CONSTRAINT fk_subscription_plans_product
+        FOREIGN KEY (product_id) REFERENCES products(id),
+    CONSTRAINT chk_subscription_plans_duration_days
+        CHECK (duration_days > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE subscriptions (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    subscription_plan_id BIGINT NOT NULL,
+    status ENUM('TRIALING', 'ACTIVE', 'EXPIRED', 'CANCELLED') NOT NULL,
+    start_at DATETIME NOT NULL,
+    end_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_subscriptions_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_subscriptions_subscription_plan
+        FOREIGN KEY (subscription_plan_id) REFERENCES subscription_plans(id),
+    CONSTRAINT chk_subscriptions_period
+        CHECK (end_at > start_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE carts (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    status ENUM('ACTIVE', 'CHECKOUT_PENDING', 'CHECKED_OUT', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
+    total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    currency CHAR(3) NOT NULL DEFAULT 'TWD',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_carts_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT chk_carts_total_amount
+        CHECK (total_amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE cart_items (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    cart_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_cart_items_cart
+        FOREIGN KEY (cart_id) REFERENCES carts(id),
+    CONSTRAINT fk_cart_items_product
+        FOREIGN KEY (product_id) REFERENCES products(id),
+    CONSTRAINT chk_cart_items_quantity
+        CHECK (quantity > 0),
+    CONSTRAINT chk_cart_items_unit_price
+        CHECK (unit_price >= 0),
+    CONSTRAINT chk_cart_items_subtotal
+        CHECK (subtotal >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE payment_transactions (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    cart_id BIGINT NOT NULL,
+    status ENUM('INITIATED', 'SUCCEEDED', 'FAILED', 'CANCELLED') NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'TWD',
+    external_payment_id VARCHAR(255),
+    idempotency_key VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_payment_transactions_external_payment_id (external_payment_id),
+    UNIQUE KEY uk_payment_transactions_idempotency_key (idempotency_key),
+    CONSTRAINT fk_payment_transactions_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_payment_transactions_cart
+        FOREIGN KEY (cart_id) REFERENCES carts(id),
+    CONSTRAINT chk_payment_transactions_amount
+        CHECK (amount >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

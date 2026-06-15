@@ -7,7 +7,6 @@ import java.util.Locale;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.FieldError;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import water_matters.dto.common.ApiResponse;
+import water_matters.dto.common.ErrorData;
 import water_matters.dto.common.ValidationErrorData;
 import water_matters.dto.common.ValidationFieldError;
 
@@ -46,26 +46,46 @@ public class GlobalExceptionHandler {
         data.setTimestamp(Instant.now().toString());
         data.setFieldErrors(fieldErrors);
 
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(new ApiResponse<>("422", "Validation errors", data));
+        return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.getHttpStatus())
+                .body(ApiResponse.error(
+                        ErrorCode.VALIDATION_ERROR.getCode(),
+                        ErrorCode.VALIDATION_ERROR.getMessage(),
+                        data
+                ));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("404", ex.getMessage()));
+    public ResponseEntity<ApiResponse<ErrorData>> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity.status(ErrorCode.USER_NOT_FOUND.getHttpStatus())
+                .body(ApiResponse.error(
+                        ErrorCode.USER_NOT_FOUND.getCode(),
+                        ex.getMessage(),
+                        errorData()
+                ));
     }
 
     @ExceptionHandler({DuplicateKeyException.class, DataIntegrityViolationException.class})
-    public ResponseEntity<ApiResponse<Void>> handleDataConflictException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error("409", "resource conflict"));
+    public ResponseEntity<ApiResponse<ErrorData>> handleDataConflictException(Exception ex) {
+        return ResponseEntity.status(ErrorCode.USER_DATA_CONFLICT.getHttpStatus())
+                .body(ApiResponse.error(
+                        ErrorCode.USER_DATA_CONFLICT.getCode(),
+                        ErrorCode.USER_DATA_CONFLICT.getMessage(),
+                        errorData()
+                ));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnexpectedException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("500", "internal server error"));
+    public ResponseEntity<ApiResponse<ErrorData>> handleUnexpectedException(Exception ex) {
+        return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
+                .body(ApiResponse.error(
+                        ErrorCode.INTERNAL_SERVER_ERROR.getCode(),
+                        ErrorCode.INTERNAL_SERVER_ERROR.getMessage(),
+                        errorData()
+                ));
+    }
+
+    private ErrorData errorData() {
+        return new ErrorData(Instant.now().toString());
     }
 
     private String resolveValidationMessage(FieldError error, Locale locale) {
