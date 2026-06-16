@@ -1,0 +1,11 @@
+:root {
+  --lime: #ebffb2;
+  --lavender: #c4bbfd;
+  --ink: #000000;
+  --retro-pink: #ff8fa3;
+  --paper: #fffaf1;
+  --white: #ffffff;
+  --danger: #f04f64;
+  --line: rgba(0, 0, 0, 0.18);
+  --line-strong: rgba(0, 0, 0, 0.72);
+}
